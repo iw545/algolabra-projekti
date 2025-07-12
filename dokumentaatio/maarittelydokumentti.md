@@ -1,7 +1,11 @@
 # Määrittelydokumentti
+
 ---
+
 Käytän tässä projektissa ohjelmointikielenä Pythonia.
+
 ---
+
 Toteutan kivi-sakset-paperi pelin, jossa pelin pelaaja pelaa tekoälyä vastaan.
 
 Jokaisella kierroksella pelaaja valitsee jonkun vaihtoehdoista "kivi / sakset / paperi" ja tekoäly tekee samoin, jonka jälkeen tulee tieto
@@ -15,9 +19,12 @@ mutta esim. taulukosta / matriisista etsittävät tiedot pelaajan tekemistä val
 läpi lista kokonaan ja etsitään toistuvia ketjuja tehdyista valinnoista ja tiedon tallentaminen näihin tietorakenteisiin on vaativuuksiltaan 0(1).
 
 ---
+
 Opinto-ohjelma johon kuulun on Tietojenkäsittelytieteen kandidaatti (TKT).
 Projektin dokumentointiin käytetty kieli on suomi.
+
 ---
+
 # Lähteet
 https://arxiv.org/pdf/2003.06769
 https://www.datacamp.com/tutorial/markov-chains-python-tutorial
