@@ -1,4 +1,5 @@
-#alkuun väliaikainen yksinkertainen tapa tietokoneella valita oma vaihtoehto sattumanvaraisesti (kivi / sakset / paperi)
+#alkuun väliaikainen yksinkertainen tapa tietokoneella valita oma
+#vaihtoehto sattumanvaraisesti (kivi / sakset / paperi)
 import random
 
 class RPS:
@@ -14,9 +15,8 @@ class RPS:
             if option in self.options:
                 option = int(option)
                 break
-            else:
-                print("Valitse uudestaan (1/2/3)")
-                continue
+            print("Valitse uudestaan (1/2/3)")
+            continue
 
         result = self.compare(option)
         self.results.append(result)
@@ -49,17 +49,17 @@ class RPS:
             #kivi vs sakset, kivi voittaa
             case (1,2):
                 result = 1
-            
+
             #kivi vs paperi, paperi voittaa
             case (1,3):
                 result = 3
-            
+
             #sakset vs paperi, sakset voittaa
             case (2,3):
                 result = 2
 
         return result
-    
+
 #testaus
 game = RPS()
 game.play()
