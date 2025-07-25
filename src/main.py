@@ -4,20 +4,23 @@ import random
 
 class RPS:
     def __init__(self):
-        self.options = ["1", "2", "3"]
+        self.options = ["1", "2", "3", "4"]
         self.results = []
         self.points = {"Pelaaja": 0, "Tietokone": 0}
 
     def play(self):
 
         while True:
-            option = input("Valitse: 1 (kivi), 2 (sakset), 3 (paperi)")
+            option = input("Valitse: 1 (kivi), 2 (sakset), 3 (paperi), 4 (lopeta peli)")
             if option in self.options:
                 option = int(option)
+                if option == 4:
+                    exit()
                 break
-            print("Valitse uudestaan (1/2/3)")
+            print("Valitse uudestaan (1/2/3/4)")
             continue
 
+        #vertaa pelaajan valintaa tietokoneen valintaan
         result = self.compare(option)
         self.results.append(result)
 
@@ -38,7 +41,10 @@ class RPS:
 
         #oletusarvo result 0 = tasapeli
         result = 0
-        computer = random.choice([1,2,3])
+
+        #tietokone valitsee kivi / sakset / paperi
+        computer = self.computer_choose()
+
         comparison = sorted([option, computer])
 
         #molemmat valitsi saman, tasapeli
@@ -58,7 +64,15 @@ class RPS:
             case (2,3):
                 result = 2
 
+        #päivitä siirtymähistoria (esim kiven jälkeen paperi)
+
         return result
+
+    def computer_choose(self):
+        #väliaikainen ratkaisu
+        choice = random.choice([1,2,3])
+
+        return choice
 
 #testaus
 game = RPS()
