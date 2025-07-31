@@ -1,9 +1,11 @@
 import random
+from collections import defaultdict
 
 class RPS:
     def __init__(self, markovs):
         self.options = ["1", "2", "3", "4"]
-        self.letters = ["", "R", "P", "S"]
+        self.letters = ["", "R", "S", "P"]
+        self.words = ["", "Kivi", "Sakset", "Paperi"]
         self.points = {"Pelaaja": 0, "Tietokone": 0}
         self.history = ""
         self.markovs = markovs
@@ -67,6 +69,11 @@ class RPS:
 
         comparison = sorted([option, computer])
 
+        #tieto mitkä valinnat pelaaja ja tietokone teki
+        print(f"Pelaaja valitsi: {self.words[option]}")
+        print(f"Tietokone valitsi: {self.words[computer]}")
+        print("-----------------------------")
+
         #molemmat valitsi saman, tasapeli
         if comparison[0] == comparison[1]:
             return result
@@ -101,40 +108,24 @@ class RPS:
         elif predict_move == "P":
             choice = 2
         else:
-            choice = 3
+            choice = 1
 
         return choice
 
 class MarkovChain:
-    def __init__(self, results, matrix):
+    def __init__(self, results):
         self.results = results
-        self.matrix = matrix
+        self.matrix = defaultdict(int)
 
 #testaus
 #results 1 = voitto, 0 = tasapeli, -1 = häviö
-'''dictionary rakenteessa ai vertaa minkä 2 kierroksen yhdistelmän jälkeen
+'''default dictionary rakenteessa ai vertaa minkä 2-6 valinnan yhdistelmän jälkeen
 pelaaja on pelannut seuraavaksi (esim kivi, kivi jälkeen joko kivi / paperi / sakset, jokaisella
 oma arvo merkkaa monta kertaa pelaaja on valinnut sen vaihtoehdon)
 '''
-markov1 = MarkovChain([1,0,1,1,-1], {"RR": {"R": 2, "P": 1, "S": 0},
-                                     "RS": {"R": 0, "P": 0, "S": 1},
-                                     "RP": {"R": 0, "P": 1, "S": 0},
-                                     "PR": {"R": 1, "P": 3, "S": 0},
-                                     "PP": {"R": 2, "P": 2, "S": 0},
-                                     "PS": {"R": 1, "P": 0, "S": 0},
-                                     "SR": {"R": 0, "P": 0, "S": 0},
-                                     "SP": {"R": 1, "P": 0, "S": 0},
-                                     "SS": {"R": 0, "P": 2, "S": 3}})
+markov1 = MarkovChain([0,1,1,0,-1])
 
-markov2 = MarkovChain([0,-1,1,0,0], {"RR": {"R": 0, "P": 1, "S": 1},
-                                     "RS": {"R": 1, "P": 0, "S": 1},
-                                     "RP": {"R": 1, "P": 1, "S": 0},
-                                     "PR": {"R": 1, "P": 0, "S": 0},
-                                     "PP": {"R": 2, "P": 0, "S": 1},
-                                     "PS": {"R": 0, "P": 0, "S": 3},
-                                     "SR": {"R": 0, "P": 1, "S": 0},
-                                     "SP": {"R": 0, "P": 0, "S": 0},
-                                     "SS": {"R": 1, "P": 2, "S": 0}})
+markov2 = MarkovChain([-1,-1,0,1,0])
 
 markov_models = [markov1, markov2]
 
