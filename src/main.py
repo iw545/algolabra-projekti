@@ -6,14 +6,21 @@ class RPS:
         self.options = ["1", "2", "3", "4"]
         self.letters = ["", "R", "S", "P"]
         self.words = ["", "Kivi", "Sakset", "Paperi"]
-        self.points = {"Pelaaja": 0, "Tietokone": 0}
+        self.points = {"Pelaaja": 0, "Tekoäly": 0}
         self.history = ""
         self.markovs = markovs
         self.current_markov = random.choice(self.markovs)
-        self.best_markov = sum(self.current_markov.results)
         self.focus = 5
 
     def play(self):
+        #vaihda markov mallia edellisen "self.focus" muuttujassa
+        #kerrotun lukumäärän kierrosten pisteiden perusteella ennen kierroksen alkua jos tarve
+        #oletusarvo self.focus = 5, tulokset voi muuttua paremmiksi / huonommiksi tekoälyn
+        #älyn kannalta sen mukaan onko alempi / korkeampi tuo luku
+        for i in self.markovs:
+            if sum(i.results[-self.focus:]) > sum(self.current_markov.results[-self.focus:]):
+                self.current_markov = i
+
         while True:
             option = input("Valitse: 1 (kivi), 2 (sakset), 3 (paperi), 4 (lopeta peli)")
             if option in self.options:
@@ -23,9 +30,6 @@ class RPS:
                 break
             print("Valitse uudestaan (1/2/3/4)")
             continue
-
-        #tallennetaan pelaajan valinnat
-        self.history += self.letters[option]
 
         #vertaa pelaajan valintaa tietokoneen valintaan
         result = self.compare(option)
@@ -38,19 +42,21 @@ class RPS:
             self.points["Pelaaja"] += 1
             self.current_markov.results.append(-1)
         else:
-            print("Kierroksen voitti Tietokone")
-            self.points["Tietokone"] += 1
+            print("Kierroksen voitti Tekoäly")
+            self.points["Tekoäly"] += 1
             self.current_markov.results.append(1)
 
+        #tulosta tilastot kierroksen lopuksi
         print("Pistetilanne:")
+        #miten monen kierroksen valinnat näytetään tilastoissa
+        history_length = 20
         for x, y in self.points.items():
-            print(x, y)
-
-        #vaihda markov mallia 5 edellisen kierroksen pisteiden perusteella jos tarve
-        for i in self.markovs:
-            if sum(i.results) > self.best_markov:
-                self.best_markov = sum(i.results)
-                self.current_markov = i
+            if x == "Pelaaja":
+                print(x, y, "---", "Viimeisen", history_length, "kierroksen valinnat:",
+                      self.history[-history_length:])
+            else:
+                print(x, y, "---", "Viimeisen", history_length, "kierroksen valinnat:",
+                      self.current_markov.history[-history_length:])
 
         self.play()
 
@@ -59,14 +65,18 @@ class RPS:
         result = 0
 
         #tietokone valitsee kivi / sakset / paperi
-        computer = self.computer_choose()
+        computer = self.computer_choose(option)
 
         comparison = sorted([option, computer])
 
         #tieto mitkä valinnat pelaaja ja tietokone teki
         print(f"Pelaaja valitsi: {self.words[option]}")
-        print(f"Tietokone valitsi: {self.words[computer]}")
+        print(f"Tekoäly valitsi: {self.words[computer]}")
         print("-----------------------------")
+
+        #tallennetaan pelaajan ja tekoälyn valinnat
+        self.history += self.letters[option]
+        self.current_markov.history += self.letters[computer]
 
         #molemmat valitsi saman, tasapeli
         if comparison[0] == comparison[1]:
@@ -85,22 +95,22 @@ class RPS:
 
         return result
 
-    def computer_choose(self):
+    def computer_choose(self, option):
         if len(self.history) < 2:
             choice = random.choice([1,2,3])
             return choice
 
-        choice = 1
         #frequencies = self.current_markov.matrix.get(self.history[-2:])
         #predict_move = max(frequencies.values())
 
         #etsitään max 6 merkin jonoja historiasta, esim. "kspspk"
-        sequence = min(len(self.history), 6)
+        sequence_length = min(len(self.history), 6)
+        sequence = self.history[-sequence_length:]
 
-        #tarkista onko pelaaja pelannut nykyistä merkkijonoa aikaisemmin
-        #jos on, valitse todennäköisin vaihtoehto minkä seuraavana pelaa
+        #tarkista onko pelattu nykyistä merkkijonoa aikaisemmin
+        #jos on, valitse todennäköisin vaihtoehto minkä seuraavana pelaaja pelaa
         #tallenna uudet tiedot samalla tämän kierroksen pelaajan pelatusta valinnasta
-        predict_move = self.search_and_update(sequence)
+        predict_move = self.search_and_update(sequence, option)
 
         #muuta vaihtoehto sen mukaan minkä pelaaja todennäköisimmin valitsee
         if predict_move == "R":
@@ -111,35 +121,48 @@ class RPS:
             choice = 1
 
         return choice
-    
-    def search_and_update(self, sequence):
+
+    def search_and_update(self, sequence, option):
         #alkuun tarkista onko koko merkkijono jo dictionaryssä ja valitse saman tien jos on
         if sequence in self.current_markov.matrix:
-            return max(self.current_markov.matrix[sequence].values())
+            result = max(self.current_markov.matrix[sequence].values())
 
         #jos ei löydy koko merkkijonoa, tarkista niin kauan miten pitkälle pystyy
         #esim jos "kspksp" ei löydy, tarkista alkaen "sp" -> "ksp" -> "pksp"
         #ja niin edelleen miten pitkälle asti löytyy ja sen jälkeen tee valinta
-        #jos ei löydy mitään, tee satunnainen valinta
         #for i in self.current_markov.matrix:
-        
-        #while True:
-
+        else:
+            result = 0
+            part_length = 2
+            while True:
+                part = sequence[-part_length:]
+                if len(part) == len(sequence):
+                    break
+                if part in self.current_markov.matrix:
+                    print(part)
+                    result = max(self.current_markov.matrix[part])
+                    part_length += 1
+                else:
+                    break
 
         #päivitä tieto mitä vaihtoehtoa pelaaja käytti
-        #if len(self.history) > 1:
-            #self.current_markov.matrix[self.history[-2:]][self.letters[option]] += 1
+        self.current_markov.matrix[sequence][self.letters[option]] += 1
 
-        return "R"
+        #jos ei löydy mitään merkkijonoa nykyisistä pelaajan valinnoista, tee satunnainen valinta
+        if result == 0:
+            return random.choice([1,2,3])
+
+        return result
 
 class MarkovChain:
     def __init__(self, results):
         self.results = results
         self.matrix = defaultdict(lambda: defaultdict(int))
+        self.history = ""
 
 #testaus
 #results 1 = voitto, 0 = tasapeli, -1 = häviö
-'''default dictionary rakenteessa ai vertaa minkä 2-6 valinnan yhdistelmän jälkeen
+'''default dictionary rakenteessa tekoäly vertaa minkä 2-6 valinnan yhdistelmän jälkeen
 pelaaja on pelannut seuraavaksi (esim kivi, kivi jälkeen joko kivi / paperi / sakset, jokaisella
 oma arvo merkkaa monta kertaa pelaaja on valinnut sen vaihtoehdon)
 '''
