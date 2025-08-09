@@ -17,9 +17,12 @@ class RPS:
         #kerrotun lukumäärän kierrosten pisteiden perusteella ennen kierroksen alkua jos tarve
         #oletusarvo self.focus = 5, tulokset voi muuttua paremmiksi / huonommiksi tekoälyn
         #älyn kannalta sen mukaan onko alempi / korkeampi tuo luku
+        markov_at_start = self.current_markov
         for i in self.markovs:
             if sum(i.results[-self.focus:]) > sum(self.current_markov.results[-self.focus:]):
                 self.current_markov = i
+        if markov_at_start != self.current_markov:
+            print("Markov AI malli vaihtui tehokkaampaan.")
 
         while True:
             option = input("Valitse: 1 (kivi), 2 (sakset), 3 (paperi), 4 (lopeta peli)")
@@ -100,9 +103,6 @@ class RPS:
             choice = random.choice([1,2,3])
             return choice
 
-        #frequencies = self.current_markov.matrix.get(self.history[-2:])
-        #predict_move = max(frequencies.values())
-
         #etsitään max 6 merkin jonoja historiasta, esim. "kspspk"
         sequence_length = min(len(self.history), 6)
         sequence = self.history[-sequence_length:]
@@ -123,23 +123,23 @@ class RPS:
         return choice
 
     def search_and_update(self, sequence, option):
+        result = 0
+
         #alkuun tarkista onko koko merkkijono jo dictionaryssä ja valitse saman tien jos on
         if sequence in self.current_markov.matrix:
-            result = max(self.current_markov.matrix[sequence].values())
+            result = max(self.current_markov.matrix[sequence])
 
         #jos ei löydy koko merkkijonoa, tarkista niin kauan miten pitkälle pystyy
         #esim jos "kspksp" ei löydy, tarkista alkaen "sp" -> "ksp" -> "pksp"
         #ja niin edelleen miten pitkälle asti löytyy ja sen jälkeen tee valinta
         #for i in self.current_markov.matrix:
         else:
-            result = 0
             part_length = 2
             while True:
                 part = sequence[-part_length:]
                 if len(part) == len(sequence):
                     break
                 if part in self.current_markov.matrix:
-                    print(part)
                     result = max(self.current_markov.matrix[part])
                     part_length += 1
                 else:
@@ -150,7 +150,7 @@ class RPS:
 
         #jos ei löydy mitään merkkijonoa nykyisistä pelaajan valinnoista, tee satunnainen valinta
         if result == 0:
-            return random.choice([1,2,3])
+            return random.choice(["R", "P", "S"])
 
         return result
 
@@ -166,10 +166,12 @@ class MarkovChain:
 pelaaja on pelannut seuraavaksi (esim kivi, kivi jälkeen joko kivi / paperi / sakset, jokaisella
 oma arvo merkkaa monta kertaa pelaaja on valinnut sen vaihtoehdon)
 '''
-markov1 = MarkovChain([0,1,1,0,-1])
-markov2 = MarkovChain([-1,-1,0,1,0])
-markov3 = MarkovChain([1,-1,1,1,0])
-markov_models = [markov1, markov2, markov3]
 
-game = RPS(markov_models)
-game.play()
+if __name__ == "__main__":
+    markov1 = MarkovChain([0,1,1,0,-1])
+    markov2 = MarkovChain([-1,-1,0,1,0])
+    markov3 = MarkovChain([1,-1,1,1,0])
+    markov_models = [markov1, markov2, markov3]
+
+    game = RPS(markov_models)
+    game.play()
